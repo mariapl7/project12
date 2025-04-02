@@ -1,36 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-
-
-class Habit(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField()
-    frequency = models.CharField(max_length=50)  # Например, ежедневно, еженедельно
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.name
-
-
-class HabitLog(models.Model):
-    habit = models.ForeignKey(Habit, on_delete=models.CASCADE)
-    date = models.DateField(auto_now_add=True)
-    status = models.BooleanField(default=False)  # True если привычка выполнена
-
-    def __str__(self):
-        return f'{self.habit.name} - {self.date} - {"Done" if self.status else "Missed"}'
-
-
-class TelegramIntegration(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    telegram_id = models.CharField(max_length=100)
-    is_subscribed = models.BooleanField(default=True)
-
-    def __str__(self):
-        return f'Telegram Integration for {self.user.username}'
-
-
-
+from django.core.exceptions import ValidationError
 
 
 class Habit(models.Model):
@@ -58,6 +28,9 @@ class Habit(models.Model):
     is_public = models.BooleanField(default=False)  # Публичная привычка
     time_to_complete = models.PositiveIntegerField()  # Время выполнения в секундах
 
+    class Meta:
+        unique_together = ('user', 'name')  # Уникальность привычки по пользователю
+
     def clean(self):
         if self.reward and self.associated_habit:
             raise ValidationError('Cannot fill both reward and associated habit fields.')
@@ -67,6 +40,17 @@ class Habit(models.Model):
             raise ValidationError('Pleasant habits cannot have a reward or associated habit.')
         if self.periodicity < 1 or self.periodicity > 7:
             raise ValidationError('Habit periodicity cannot be less than 1 day or more than 7 days.')
+        if self.associated_habit and not self.associated_habit.pleasant_habit:
+            raise ValidationError('Associated habit must be a pleasant habit.')
 
     def __str__(self):
         return f"{self.action} at {self.place} at {self.time}"
+
+
+class TelegramIntegration(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    telegram_id = models.CharField(max_length=100, unique=True)
+    is_subscribed = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f'Telegram Integration for {self.user.username}'
