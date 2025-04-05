@@ -3,9 +3,13 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-SECRET_KEY = 'django-insecure-y_o)k%f()a2px2ix533ydf_414unkxl-mnk3ifu@s004^&fh!e'
+import os
+from dotenv import load_dotenv
 
-DEBUG = True
+load_dotenv()  # Загружаем переменные из .env файла
+
+SECRET_KEY = os.getenv('SECRET_KEY')
+DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = []
 
@@ -116,3 +120,5 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 5,  # 5 привычек на страницу
 }
+
+AUTH_USER_MODEL = 'users.CustomUser'
