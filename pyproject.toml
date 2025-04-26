@@ -8,6 +8,9 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.12"
 routes = "^2.5.1"
+djangorestframework = "^3.16.0"
+celery = "^5.5.0"
+django-perms = "^2.1.0"
 
 
 [build-system]
