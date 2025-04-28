@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main  # Запускать при пушах в ветку main
+      - Homework_35_2  # Запускать при пушах в ветку Homework_35_2
 
 jobs:
   test:  # Работа по тестированию
