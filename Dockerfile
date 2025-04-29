@@ -7,6 +7,8 @@ WORKDIR /app
 # Копируем файл зависимостей в контейнер
 COPY requirements.txt .
 
+python -m pip install pip==24.0
+
 # Устанавливаем зависимости
 RUN pip install --no-cache-dir -r requirements.txt
 
