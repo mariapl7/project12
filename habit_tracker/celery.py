@@ -1,5 +1,5 @@
 import os
-from habits.celery import Celery
+from habit_tracker.celery import Celery
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'habit_tracker.settings')
