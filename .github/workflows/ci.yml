@@ -9,6 +9,17 @@ jobs:
   test:  # Работа по тестированию
     runs-on: ubuntu-latest
 
+    services:
+      db:
+        image: postgres:13
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ${{ secrets.POSTGRES_USER }}"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code  # Клонирование кода из репозитория
         uses: actions/checkout@v2

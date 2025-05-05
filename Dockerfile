@@ -16,6 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Указываем переменную окружения для Django
+ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # Команда для запуска приложения (можно изменить на нужную)

@@ -44,5 +44,14 @@ services:
       - db
       - redis
 
+  nginx:
+    image: nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+
 volumes:
   postgres_data:
