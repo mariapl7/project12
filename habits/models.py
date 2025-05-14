@@ -47,6 +47,10 @@ class Habit(models.Model):
         return f"{self.action} at {self.place} at {self.time}"
 
 
+class HabitLog(models.Model):
+    pass
+
+
 class TelegramIntegration(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     telegram_id = models.CharField(max_length=100, unique=True)
