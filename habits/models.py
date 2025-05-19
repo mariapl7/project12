@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from users.models import User
 from django.core.exceptions import ValidationError
 
 
@@ -17,7 +17,7 @@ class Habit(models.Model):
         (30, 'Every month'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='habits')  # Связь с пользователем
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Связь с пользователем
     action = models.CharField(max_length=100, choices=ACTION_CHOICES)  # Действие
     place = models.CharField(max_length=255)  # Место выполнения привычки
     time = models.TimeField()  # Время выполнения
@@ -29,7 +29,7 @@ class Habit(models.Model):
     time_to_complete = models.PositiveIntegerField()  # Время выполнения в секундах
 
     class Meta:
-        unique_together = ('user', 'name')  # Уникальность привычки по пользователю
+        unique_together = ('user',)  # Уникальность привычки по пользователю
 
     def clean(self):
         if self.reward and self.associated_habit:

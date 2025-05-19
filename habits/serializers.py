@@ -1,7 +1,7 @@
 import os
 import sys
 from rest_framework import serializers
-from .models import HabitLog
+from .models import HabitLog, Habit
 
 
 class HabitLogSerializer(serializers.ModelSerializer):
@@ -9,6 +9,11 @@ class HabitLogSerializer(serializers.ModelSerializer):
         model = HabitLog
         fields = '__all__'
 
+
+class HabitSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Habit
+        fields = '__all__'
 
 def main():
     """Run administrative task."""

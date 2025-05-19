@@ -6,61 +6,94 @@ on:
       - Homework_kurs_9  # Запускать при пушах в ветку Homework_kurs_9
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-
-    services:
-      db:
-        image: postgres:13
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U ${{ secrets.POSTGRES_USER }}"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
+  lint:
+    runs-on: ubunty_latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Check out code
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python version: "3.10"
+
+      - name: Install flake8
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+
+      - name: Run flake8
+        run: flake8 .
+
+  test:
+    needs: lint
+    runs-on: ubunty-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python version: "3.10"
+
+      - name: Set environment variables
+        run: echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >>$GITHUB_ENV
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Wait for database to be ready
+      - name: Create .ent file
         run: |
-          until pg_isready -h localhost -p 5432 -U ${{ secrets.POSTGRES_USER }}; do
-            echo "Waiting for database..."
-            sleep 5
-          done
+          echo "${{ secrets.ENV_FILE }}" > .env
+          echo "TAG=S{{ github.sha }}" >> .env
+        shell: bash
 
       - name: Run tests
-        run: |
-          python manage.py test
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        run: python manage.py test
 
-  deploy:
-    runs-on: ubuntu-latest
+  build:
     needs: test
-
-    if: success()
+    runs-on: ubunty-latest
 
     steps:
-      - name: Checkout code for deployment
-        uses: actions/checkout@v2
+      - name: Check out code
+        uses: actions/checkout@v3
 
-      - name: Deploy to server
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SERVER_IP: ${{ secrets.SERVER_IP }}
-          USERNAME: ${{ secrets.USERNAME }}
+      - name: Log in to Docker Hub
+        run: echo ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/pythonProject12:${{ github.sha }} .
+
+      - name: Push Docker image to Docker Hub
+        run: docker hub ${{ secrets.DOCKER_HUB_USERNAME }}/pythonProject12:${{ github.sha }}
+
+  deploy:
+    needs: build
+    runs-on: ubunty-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up SSH
+        run: webfactory/ssh-agent@0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      - name: Deploy to Server
         run: |
-          echo "$SSH_PRIVATE_KEY" > private_key.pem
-          chmod 600 private_key.pem
-          scp -i private_key.pem -r ./* $USERNAME@$SERVER_IP:/path/to/deploy/
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+                    
+          docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/pythonProject12:${{ github.sha }}
+          docker stop pythonProject12 || true
+          docker rm pythonProject12 || true
+          docker run -d --name pythonProject12 -p 80:8000 ${{ secrets.DOCKER_HUB_USERNAME }}/pythonProject12:${{ github.sha }}
+          EOF
+

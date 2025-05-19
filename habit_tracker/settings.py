@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'habits',
     'django_celery_beat',
     'users',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -128,6 +129,9 @@ CELERY_TASK_SERIALIZER = 'json'
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 5,  # 5 привычек на страницу
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
 }
 
-AUTH_USER_MODEL = 'users.CustomUser'
+AUTH_USER_MODEL = 'users.User'
