@@ -1,9 +1,7 @@
 name: CI/CD Pipeline
 
-on:
-  push:
-    branches:
-      - Homework_kurs_9  # Запускать при пушах в ветку Homework_kurs_9
+on: [push]
+
 
 jobs:
   lint:
