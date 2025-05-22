@@ -7,17 +7,18 @@ from .models import HabitLog, Habit
 class HabitLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = HabitLog
-        fields = '__all__'
+        fields = "__all__"
 
 
 class HabitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Habit
-        fields = '__all__'
+        fields = "__all__"
+
 
 def main():
     """Run administrative task."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODEL', 'habit_tracker.settings')
+    os.environ.setdefault("DJANGO_SETTINGS_MODEL", "habit_tracker.settings")
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -29,5 +30,5 @@ def main():
     execute_from_command_line(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

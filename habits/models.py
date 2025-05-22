@@ -5,16 +5,16 @@ from django.core.exceptions import ValidationError
 
 class Habit(models.Model):
     ACTION_CHOICES = [
-        ('walk', 'Walk'),
-        ('read', 'Read'),
-        ('workout', 'Workout'),
+        ("walk", "Walk"),
+        ("read", "Read"),
+        ("workout", "Workout"),
         # Дополнить нужными действиями
     ]
 
     PERIODICITY_CHOICES = [
-        (1, 'Every day'),
-        (7, 'Every week'),
-        (30, 'Every month'),
+        (1, "Every day"),
+        (7, "Every week"),
+        (30, "Every month"),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # Связь с пользователем
@@ -22,26 +22,38 @@ class Habit(models.Model):
     place = models.CharField(max_length=255)  # Место выполнения привычки
     time = models.TimeField()  # Время выполнения
     reward = models.CharField(max_length=255, blank=True, null=True)  # Вознаграждение
-    associated_habit = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)  # Связанная привычка
-    periodicity = models.IntegerField(choices=PERIODICITY_CHOICES, default=1)  # Периодичность выполнения
+    associated_habit = models.ForeignKey(
+        "self", on_delete=models.SET_NULL, null=True, blank=True
+    )  # Связанная привычка
+    periodicity = models.IntegerField(
+        choices=PERIODICITY_CHOICES, default=1
+    )  # Периодичность выполнения
     pleasant_habit = models.BooleanField(default=False)  # Приятная привычка
     is_public = models.BooleanField(default=False)  # Публичная привычка
     time_to_complete = models.PositiveIntegerField()  # Время выполнения в секундах
 
     class Meta:
-        unique_together = ('user',)  # Уникальность привычки по пользователю
+        unique_together = ("user", "action")  # Уникальность по пользователю и действию
 
     def clean(self):
         if self.reward and self.associated_habit:
-            raise ValidationError('Cannot fill both reward and associated habit fields.')
+            raise ValidationError(
+                "Cannot fill both reward and associated habit fields."
+            )
         if self.time_to_complete > 120:
-            raise ValidationError('Time to complete habit cannot exceed 120 seconds.')
+            raise ValidationError("Time to complete habit cannot exceed 120 seconds.")
         if self.pleasant_habit and (self.reward or self.associated_habit):
-            raise ValidationError('Pleasant habits cannot have a reward or associated habit.')
-        if self.periodicity < 1 or self.periodicity > 7:
-            raise ValidationError('Habit periodicity cannot be less than 1 day or more than 7 days.')
+            raise ValidationError(
+                "Pleasant habits cannot have a reward or associated habit."
+            )
+        if self.periodicity < 1 or self.periodicity > 30:
+            raise ValidationError("Habit periodicity must be between 1 and 30 days.")
         if self.associated_habit and not self.associated_habit.pleasant_habit:
-            raise ValidationError('Associated habit must be a pleasant habit.')
+            raise ValidationError("Associated habit must be a pleasant habit.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()  # Вызов clean перед сохранением
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.action} at {self.place} at {self.time}"
@@ -57,4 +69,4 @@ class TelegramIntegration(models.Model):
     is_subscribed = models.BooleanField(default=True)
 
     def __str__(self):
-        return f'Telegram Integration for {self.user.username}'
+        return f"Telegram Integration for {self.user.username}"

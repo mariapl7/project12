@@ -5,6 +5,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
     """
     Разрешает доступ только владельцу объекта или на чтение для остальных.
     """
+
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
